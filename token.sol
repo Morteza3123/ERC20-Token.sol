@@ -1,57 +1,61 @@
 // SPDX-License-Identifier: GPL-3.0
 
-pragma solidity >=0.7.0 <0.9.0;
+pragma solidity ^0.8.6;
 
-contract Token{
+contract Token {
+    string public name ;
+    string public symbol;
+    uint256 public decimal;
+    uint256 public totalSupply;
     
-    uint256 private TotalSupply;
-    string private TokenName;
-    string private symbol;
-    uint256 decimal=10^18;
-    address owner;
+    mapping(address => uint256) public balanceOf;
+    mapping(address => mapping(address => uint256)) public allowance ;
     
-     mapping(address => uint)balances;
-    mapping(address => mapping(address=>uint))allowens;
+    event Transfer(address indexed from, address indexed to, uint256 _value);
+    event Approval(address indexed owner, address indexed spender, uint256 val);
     
-    constructor(string memory _name, string memory _symbol){
-        TokenName=_name;
+    constructor(string memory _name, string memory _symbol, uint _decimals, uint _totalDupply){
+        name = _name;
         symbol=_symbol;
-        
+        decimal=_decimals;
+        totalSupply=_totalDupply;
+        balanceOf[msg.sender]=totalSupply;
     }
     
-   
+    function transfer(address _to, uint256 _value) external returns (bool success) {
+        require(balanceOf[msg.sender] >= _value);
+        // require( _to != 0 , 'reciever doesent exist' );
+        balanceOf[msg.sender] -= _value;
+        balanceOf[_to] += _value;
+       emit Transfer(msg.sender, _to, _value);
+               return true;
+    } 
     
-    event approwal(address indexed owner, address indexed spender, uint amount);
-    event transferr( address indexed to , uint amount);
-    event transferFromm(address indexed from, address indexed to , uint amount);
     
-    
-    function showbalance()public view returns(uint){
-        return(balances[msg.sender]);
-    }
-    
-    function transfer(address _to , uint _amount) public returns(bool success){
-        if(balances[msg.sender] <= _amount){
-           balances[msg.sender] -= _amount;
-           balances[_to] += _amount;
-           emit transferr(_to,_amount);
-           return true;
-        }
-    }
-    
-    function approw(address _spender, uint _amount)public returns(bool){
-        allowens[msg.sender][_spender]=_amount;
-        emit approwal(msg.sender, _spender, _amount);
+    function approve(address _spender, uint256 _value) external returns(bool){
+        require(_spender != address(0));
+        allowance[msg.sender][_spender] = _value; 
+        emit Approval(msg.sender, _spender, _value);
         return true;
     }
-    function transferFrom(address _from, address _to, uint _amount)public returns(bool success){
-        if(balances[_from] <= _amount){
-            balances[_from] -= _amount;
-            balances[_to] -= _amount;
-            emit transferFromm(_from,_to,_amount);
-            return true;
-            
-        }
+    
+    function TransferFrom(address _from, address _to, uint _value) external returns(bool){
+        require(balanceOf[_from] >= _value, "you dont allow to transfer");
+        require(allowance[_from][msg.sender] >= _value);
+        allowance[_from][msg.sender] -= _value;
+        balanceOf[_from] -= _value;
+        balanceOf[_to] += _value;
+        return true;
     }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
 }
